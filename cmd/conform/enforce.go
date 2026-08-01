@@ -8,10 +8,11 @@ import (
 	"errors"
 	"fmt"
 
-	git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 
 	"github.com/siderolabs/conform/internal/enforcer"
+	conformgit "github.com/siderolabs/conform/internal/git"
 	"github.com/siderolabs/conform/internal/policy"
 )
 
@@ -33,6 +34,7 @@ var enforceCmd = &cobra.Command{
 
 		// Get the config path value
 		configPath := cmd.Flags().Lookup("config").Value.String()
+
 		e, err := enforcer.New(configPath, reporter)
 		if err != nil {
 			return fmt.Errorf("failed to create enforcer: %w", err)
@@ -51,6 +53,7 @@ var enforceCmd = &cobra.Command{
 			if err != nil {
 				return fmt.Errorf("failed to detect main branch: %w", err)
 			}
+
 			if mainBranch != "" {
 				opts = append(opts, policy.WithCommitRef(fmt.Sprintf("refs/heads/%s", mainBranch)))
 			}
@@ -79,7 +82,7 @@ func init() {
 func detectMainBranch() (string, error) {
 	mainBranch := "main"
 
-	repo, err := git.PlainOpen(".")
+	repo, err := conformgit.OpenRepository(".")
 	if err != nil {
 		// not a git repo, ignore
 		return "", nil //nolint:nilerr
